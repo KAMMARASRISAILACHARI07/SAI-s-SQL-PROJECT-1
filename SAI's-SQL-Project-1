@@ -1,0 +1,107 @@
+
+-- Create Passengers table to store passenger information
+CREATE TABLE Passengers (passenger_id INT PRIMARY KEY,name VARCHAR(255),contact_number VARCHAR(15),email VARCHAR(255));
+
+--Passengers table with sample data
+
+insert into Passengers(passenger_id, name, contact_number, email)values
+(1,'John Doe','123-456-7890','john.doe@email.com'),
+(2,'Jane Smith','987-654-3210','jane.smith@email.com'),
+(3,'Michael Brown','555-123-4567','michael.brown@email.com'),
+(4,'Emily Johnson','222-333-4444','emily.johnson@email.com'),
+(5,'David Wilson','999-888-7777','david.wilson@email.com'),
+(6,'Sarah Lee','777-666-5555','sarah.lee@email.com'),
+(7,'James Miller','111-222-3333','james.miller@email.com'),
+(8,'Lisa Taylor','444-333-6666','lisa.taylor@email.com'),
+(9,'Robert Anderson','777-888-9999','robert.anderson@email.com'),
+(10,'Olivia Martinez','666-555-4444','olivia.martinez@email.com');
+
+-- Display contents of the Passengers table
+select*from Passengers;
+
+-- Create BusFares table to store fare information
+
+CREATE TABLE BusFares (fare_id INT PRIMARY KEY,fare_type VARCHAR(50) CHECK(fare_type IN ('Sitting', 'Sleeper')),price DECIMAL(10, 2),discounts VARCHAR(255));
+
+-- Populate BusFares table with sample data
+Insert into BusFares(fare_id,fare_type,price,discounts)values
+(1,'Sitting','50.00','10% off for services'),
+(2,'Sleeper','100.00','20% off for Students');
+
+-- Display contents of the BusFares table
+select*from BusFares;
+
+-- Create Bookings table to store booking information
+CREATE TABLE Bookings (booking_id INT PRIMARY KEY,passenger_id INT,fare_id INT,seat_number INT,payment_status VARCHAR(50) CHECK(payment_status IN ('Paid', 'Pending')),
+FOREIGN KEY (passenger_id) REFERENCES Passengers(passenger_id),
+FOREIGN KEY (fare_id) REFERENCES BusFares(fare_id),
+UNIQUE(seat_number));
+
+-- Populate Bookings table with sample data
+Insert into Bookings(booking_id,passenger_id,fare_id,seat_number,payment_status)values
+(1,1,1,10,'Paid'),
+(2,2,1,15,'Pending'),
+(3,3,2,5,'Paid'),
+(4,4,2,12,'Paid'),
+(5,5,1,8,'Pending'),
+(6,6,1,20,'Paid'),
+(7,7,2,3,'Paid'),
+(8,8,1,16,'Pending'),
+(9,9,2,7,'Paid'),
+(10,10,1,4,'Pending');
+
+-- Display contents of the Bookings table
+SELECT *from Bookings;
+
+-- Retrieve passengers with pending bookings
+SELECT * FROM Passengers WHERE passenger_id IN (SELECT passenger_id FROM Bookings WHERE payment_status = 'Pending');
+
+-- Count total bookings for each fare type
+SELECT fare_type, COUNT(*) AS total_bookings FROM Bookings JOIN BusFares ON Bookings.fare_id = BusFares.fare_id GROUP BY fare_type;
+
+-- Update payment status of a booking to 'Paid'
+UPDATE Bookings SET payment_status = 'Paid' WHERE booking_id = 2;
+
+-- Calculate total revenue from all bookings
+SELECT SUM(price) AS total_revenue FROM Bookings JOIN BusFares ON Bookings.fare_id = BusFares.fare_id;
+
+-- Retrieve passengers with bookings for 'Sitting' fare
+SELECT * FROM Passengers WHERE passenger_id IN (SELECT passenger_id FROM Bookings WHERE fare_id IN (SELECT fare_id FROM BusFares WHERE fare_type ='Sitting'));
+
+-- Delete a booking for a specific passenger
+DELETE FROM Bookings WHERE passenger_id = 3;
+
+-- Display detailed information about bookings including passenger and fare details
+SELECT * FROM Bookings JOIN Passengers ON Bookings.passenger_id =
+Passengers.passenger_id JOIN BusFares ON Bookings.fare_id = BusFares.fare_id;
+
+-- Count total bookings made by a specific passenger
+SELECT COUNT(*) AS total_bookings FROM Bookings WHERE passenger_id = 2;
+
+-- Retrieve passengers with a booking for a specific seat number
+SELECT * FROM Passengers WHERE passenger_id IN (SELECT passenger_id FROM
+Bookings WHERE seat_number = 10);
+
+-- Retrieve fare details for a specific booking
+SELECT * FROM BusFares WHERE fare_id = (SELECT fare_id FROM Bookings WHERE
+booking_id = 9);
+
+-- Calculate average fare price for each fare type
+SELECT fare_type, AVG(price) AS average_fare_price FROM BusFares GROUP BY
+fare_type;
+
+-- Retrieve passengers with multiple bookings
+SELECT * FROM Passengers WHERE passenger_id IN (SELECT passenger_id FROM
+Bookings GROUP BY passenger_id HAVING COUNT(seat_number) > 1);
+
+-- Count total bookings for each fare type
+SELECT fare_type, COUNT(*) AS total_bookings FROM Bookings JOIN BusFares ON
+Bookings.fare_id = BusFares.fare_id GROUP BY fare_type;
+
+-- Retrieve passengers with bookings for seat numbers between 1 and 10
+SELECT * FROM Passengers WHERE passenger_id IN (SELECT passenger_id FROM
+Bookings WHERE seat_number BETWEEN 1 AND 10);
+
+-- Retrieve passengers with unpaid bookings
+SELECT * FROM Passengers WHERE passenger_id IN (SELECT passenger_id FROM
+Bookings WHERE payment_status <> 'Paid');
